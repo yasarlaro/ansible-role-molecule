@@ -1,0 +1,14 @@
+---
+required_packages:
+  - ansible
+  - python3
+  - yum-utils
+  - gcc
+  - python-pip
+  - python-devel
+  - openssl-devel
+  - libselinux-python
+
+molecule_pip:
+  - molecule
+  - docker

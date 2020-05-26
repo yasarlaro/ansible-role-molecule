@@ -1,0 +1,8 @@
+---
+# vars file for ansible-role-molecule
+remote_user: vagrant
+epel_repo_path: "/etc/yum.repos.d/epel.repo"
+dockerce_repo_path: "/etc/yum.repos.d/docker-ce.repo"
+dockerce_repo_url: "https://download.docker.com/linux/centos/docker-ce.repo"
+containderdio_version: "1.2.6-3.3"
+containerdio_url: "https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-{{ containderdio_version }}.el7.x86_64.rpm"

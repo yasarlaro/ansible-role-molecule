@@ -1,0 +1,21 @@
+galaxy_info:
+  author: Onur Yasarlar
+  description: Setups molecule on supported operating systems
+  company: Onur Lab
+  role_name: molecule
+
+  license: license MIT
+
+  min_ansible_version: 2.7
+
+  platforms:
+  - name: EL
+    versions:
+    - 7
+    - 8
+
+  galaxy_tags:
+    - docker
+    - molecule
+    - centos7
+    - centos8

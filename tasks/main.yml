@@ -1,0 +1,94 @@
+---
+# tasks file for ansible-role-molecule
+- name: Check OS version
+  fail:
+    msg: "OS Version( {{ ansible_distribution }}{{ ansible_distribution_major_version }} ) is not certified for the role"
+  when:
+    - ansible_facts['distribution'] != "CentOS"
+    - ansible_facts['distribution_major_version'] != "7" or ansible_facts['distribution_major_version'] != "8"
+
+- name: Include OS-Specific variables
+  include_vars: "{{ ansible_distribution }}{{ ansible_distribution_major_version }}.yml"
+
+- name: Install Molecule
+  block:
+    - name: Check if EPEL repo is already configured
+      stat:
+        path: "{{ epel_repo_path }}"
+      register: epel_repo_exists
+
+    - name: Enable epel-repository
+      yum:
+        name: epel-release
+        state: present
+      when: not epel_repo_exists.stat.exists
+
+    - name: Install required packages
+      yum:
+        name: "{{ required_packages }}"
+        state: present
+
+    - name: Check if docker-ce repo is already configured
+      stat:
+        path: "{{ dockerce_repo_path }}"
+      register: dockerce_repo_exists
+
+    - name: Enable Docker Repo
+      get_url:
+        dest: "{{ dockerce_repo_path }}"
+        url: "{{ dockerce_repo_url }}"
+        mode: "0644"
+        owner: root
+        group: root
+      when: not dockerce_repo_exists.stat.exists
+
+    - name: Gather the rpm package facts
+      package_facts:
+        manager: auto
+
+    # Currently it gives an error if you install containerd.io
+    # along with docker
+    - name: Install containerd.io manually
+      yum:
+        name: "{{ containerdio_url }}"
+        state: present
+      when: "'containerd.io' in ansible_facts.packages"
+
+    - name: Install Docker
+      yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+
+    - name: Add remote user to docker group
+      user:
+        name: "{{ remote_user }}"
+        groups: docker
+        append: true
+
+    - name: Start and enable docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+  become: true
+
+- name: Pip requirements in CentOS7
+  block:
+    - name: Upgrade pip in CentOS7
+      command: pip install --upgrade pip
+      args:
+        warn: no
+      become: true
+
+    - name: Upgrade setuptools
+      command: pip install --upgrade --user setuptools
+      args:
+        warn: no
+
+  when: ansible_facts['distribution_major_version'] == "7"
+
+- name: Install molecule
+  pip:
+    name: "{{ molecule_pip }}"
+    extra_args: --user
